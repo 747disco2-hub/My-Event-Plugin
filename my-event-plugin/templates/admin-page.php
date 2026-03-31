@@ -23,7 +23,9 @@ defined('ABSPATH') || exit;
                     <li><?php _e('Naviga nel tuo Google Drive e seleziona la cartella con le foto', 'my-event-plugin'); ?></li>
                     <li><?php _e('Seleziona 4 foto da importare in WordPress', 'my-event-plugin'); ?></li>
                     <li><?php _e('Scegli quale foto usare come copertina', 'my-event-plugin'); ?></li>
-                    <li><?php _e('Compila i dettagli dell\'evento e clicca "Crea Evento"', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Importa le foto nella Media Library', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Seleziona la categoria e usa "Genera Prompt ChatGPT" per auto-compilare il contenuto', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Compila i restanti dettagli e clicca "Crea Evento"', 'my-event-plugin'); ?></li>
                 </ol>
             </div>
             
@@ -34,6 +36,7 @@ defined('ABSPATH') || exit;
                     <li><?php _e('Formati supportati: JPG, PNG, GIF, WebP', 'my-event-plugin'); ?></li>
                     <li><?php _e('Le foto verranno importate nella Media Library', 'my-event-plugin'); ?></li>
                     <li><?php _e('L\'articolo verrà creato come bozza', 'my-event-plugin'); ?></li>
+                    <li><?php _e('🤖 Usa "Genera Prompt ChatGPT" per creare automaticamente titolo SEO, meta description e contenuto HTML', 'my-event-plugin'); ?></li>
                 </ul>
             </div>
         </div>

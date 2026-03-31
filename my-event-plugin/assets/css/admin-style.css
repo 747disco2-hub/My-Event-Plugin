@@ -944,3 +944,36 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ===== Sezioni ChatGPT Prompt & Auto-Fill ===== */
+#mep-chatgpt-prompt-container,
+#mep-chatgpt-response-section {
+    animation: mep-slide-down 0.3s ease-out;
+}
+
+@keyframes mep-slide-down {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+#mep-generate-prompt-btn {
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+#mep-generate-prompt-btn:hover {
+    background: #cce5ff !important;
+    border-color: #004085 !important;
+    color: #004085 !important;
+}
+
+#mep-parse-chatgpt-btn {
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#mep-chatgpt-prompt {
+    font-family: monospace;
+}
+
+#mep-chatgpt-response {
+    font-family: monospace;
+}

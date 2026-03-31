@@ -620,7 +620,7 @@
                         });
                         
                         linksHtml += '</ul>';
-                        linksHtml += '<p style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 4px; color: #856404;"><strong>⚠️ Nota:</strong> Il prompt per ChatGPT verrà generato dopo la creazione dell\'evento, quando avrai selezionato categoria e foto copertina.</p>';
+                        linksHtml += '<p style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 4px; color: #155724; border-left: 4px solid #28a745;"><strong>✅ Prossimo passo:</strong> Seleziona una categoria, poi clicca il bottone <strong>"Genera Prompt ChatGPT"</strong> qui sotto per generare un prompt da usare con ChatGPT e compilare automaticamente tutti i campi.</p>';
                         
                         $('#mep-imported-links-container').html(linksHtml).slideDown();
                         
@@ -648,17 +648,7 @@
         
         // ===== Genera Prompt ChatGPT =====
         $('#mep-generate-prompt-btn').on('click', function() {
-            // Validazione
-            if (PhotoSelector.selectedPhotos.length === 0) {
-                alert('Seleziona almeno una foto prima di generare il prompt!');
-                return;
-            }
-            
-            if (!$('#mep-featured-image-select').val()) {
-                alert('Scegli quale foto usare come copertina prima di generare il prompt!');
-                return;
-            }
-            
+            // Solo la categoria è necessaria per generare un prompt utile
             if (!$('#event_category').val()) {
                 alert('Seleziona una categoria prima di generare il prompt!');
                 return;

@@ -17,7 +17,7 @@
 defined('ABSPATH') || exit;
 
 // Definisci costanti
-define('MEP_VERSION', '1.0.0');
+define('MEP_VERSION', '1.2.0');
 define('MEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MEP_PLUGIN_FILE', __FILE__);
