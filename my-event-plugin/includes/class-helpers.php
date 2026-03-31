@@ -112,8 +112,8 @@ class MEP_Helpers {
         }
         $sanitized['event_category'] = absint($data['event_category']);
         
-        // Contenuto HTML
-        $sanitized['event_content'] = wp_kses_post($data['event_content'] ?? '');
+        // Contenuto HTML — wp_slash() preserva backslash ed entità HTML dopo la sanitizzazione
+        $sanitized['event_content'] = wp_slash(wp_kses_post(wp_unslash($data['event_content'] ?? '')));
         
         // SEO
         $sanitized['seo_focus_keyword'] = sanitize_text_field($data['seo_focus_keyword'] ?? '');
