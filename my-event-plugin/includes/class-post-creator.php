@@ -229,11 +229,15 @@ class MEP_Post_Creator {
             $content = $template->post_content;
         }
         
+        // Disabilita temporaneamente i filtri kses per evitare la doppia sanitizzazione:
+        // il contenuto è già stato sanitizzato con wp_kses_post() in class-helpers.php
+        kses_remove_filters();
         wp_update_post([
             'ID' => $post_id,
             'post_title' => $title,
             'post_content' => $content
         ]);
+        kses_init_filters();
     }
     
     /**

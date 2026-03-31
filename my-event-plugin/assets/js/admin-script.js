@@ -669,29 +669,49 @@
             const categoryText = $('#event_category option:selected').text() || 'Categoria';
             const featuredIndex = parseInt($('#mep-featured-image-select').val()) || 0;
             
-            // Estrai solo il nome del festeggiato (rimuovi la data DD-MM-AAAA dalla fine)
-            const nomeFesteggiato = folderName.replace(/\s+\d{2}-\d{2}-\d{4}$/, '').trim() || folderName;
+            // Estrai solo il nome dell'evento (rimuovi la data DD-MM-AAAA dalla fine)
+            const nomeEvento = folderName.replace(/\s+\d{2}-\d{2}-\d{4}$/, '').trim() || folderName;
             
-            // Raccogli gli URL delle foto (eccetto la copertina)
+            // Raccogli gli URL delle foto già importate dal container (source of truth)
             const photoUrlsForPrompt = [];
-            PhotoSelector.selectedPhotos.forEach((photo, idx) => {
-                if (idx !== featuredIndex && photo.url) {
-                    photoUrlsForPrompt.push(photo.url);
-                }
+            $('#mep-imported-links-container a').each(function(idx) {
+                photoUrlsForPrompt.push($(this).attr('href'));
             });
             
-            // Se non ci sono URL dalle foto selezionate, usa quelli importati
-            if (photoUrlsForPrompt.length === 0) {
-                // Prova a recuperare dagli URL già importati nel container
-                $('#mep-imported-links-container a').each(function(idx) {
-                    if (idx !== featuredIndex) {
-                        photoUrlsForPrompt.push($(this).attr('href'));
-                    }
+            // Sezione foto nel prompt
+            let sezionePhoto = '';
+            if (photoUrlsForPrompt.length > 0) {
+                sezionePhoto = `\nHo già importato le seguenti foto dell'evento in WordPress. Inseriscile nell'articolo usando tag <img> con questi URL esatti (usa style="max-width:100%;height:auto;" su ogni img):\n`;
+                photoUrlsForPrompt.forEach((url, idx) => {
+                    sezionePhoto += `- Foto ${idx + 1}: ${url}\n`;
                 });
+            } else {
+                sezionePhoto = `\nNon ho ancora importato le foto, quindi non includere tag <img>. Il contenuto sarà integrato con le foto in seguito.\n`;
             }
             
-            // Genera il prompt
-            const chatGptPrompt = `Scrivi un articolo sui ${categoryText} di ${nomeFesteggiato}. Ecco le foto che devi inserire nell'articolo:\n${photoUrlsForPrompt.join('\n')}`;
+            // Formato di output richiesto
+            const formatoOutput = `---TITOLO_SEO---
+[Scrivi qui il titolo SEO, massimo 60 caratteri]
+---META_DESCRIPTION---
+[Scrivi qui la meta description, massimo 160 caratteri]
+---FOCUS_KEYWORD---
+[Scrivi qui la focus keyword principale]
+---CONTENUTO_HTML---
+[Scrivi qui il testo HTML completo dell'articolo]
+---FINE---`;
+            
+            // Genera il prompt strutturato
+            const chatGptPrompt = `Sei un esperto copywriter SEO per locali notturni e discoteche. Devi scrivere un articolo per il blog del locale per l'evento "${nomeEvento}" nella categoria "${categoryText}".
+
+ISTRUZIONI:
+- Scrivi in italiano, tono coinvolgente e promozionale
+- Usa tag HTML per la formattazione: <h2>, <h3>, <p>, <strong>, <em>, e <ul>/<li> dove appropriato
+- L'articolo deve essere informativo e invogliare a partecipare all'evento
+- Includi riferimenti al tipo di locale/discoteca/venue${sezionePhoto}
+FORMATO RISPOSTA OBBLIGATORIO:
+Rispondi ESCLUSIVAMENTE con il seguente formato, senza testo aggiuntivo prima o dopo:
+
+${formatoOutput}`;
             
             // Mostra il prompt
             const promptHtml = `
@@ -701,10 +721,10 @@
                         Prompt per ChatGPT
                     </h4>
                     <p style="margin: 0 0 10px 0; color: #646970; font-size: 13px;">
-                        Copia questo prompt e incollalo in ChatGPT per generare l'articolo. Poi inserisci il contenuto generato nel campo "Contenuto Articolo".
+                        Copia questo prompt e incollalo in ChatGPT. Poi incolla la risposta completa nel campo qui sotto per compilare i campi automaticamente.
                     </p>
                     <textarea id="mep-chatgpt-prompt" readonly 
-                        style="width: 100%; height: 150px; padding: 10px; border: 1px solid #c3c4c7; border-radius: 4px; 
+                        style="width: 100%; height: 220px; padding: 10px; border: 1px solid #c3c4c7; border-radius: 4px; 
                                font-family: monospace; font-size: 12px; resize: vertical; background: #fff;"
                     >${chatGptPrompt}</textarea>
                     <button type="button" id="mep-copy-prompt-btn" class="button button-primary" 
@@ -717,6 +737,9 @@
             `;
             
             $('#mep-chatgpt-prompt-container').html(promptHtml).slideDown();
+            
+            // Mostra la sezione "Incolla risposta ChatGPT"
+            $('#mep-chatgpt-response-section').slideDown();
             
             // Handler per il bottone copia
             $('#mep-copy-prompt-btn').on('click', function() {
@@ -736,6 +759,82 @@
             $('html, body').animate({
                 scrollTop: $('#mep-chatgpt-prompt-container').offset().top - 100
             }, 500);
+        });
+        
+        // ===== Analizza e Compila Campi da risposta ChatGPT =====
+        $('#mep-parse-chatgpt-btn').on('click', function() {
+            const rawResponse = $('#mep-chatgpt-response').val().trim();
+            
+            if (!rawResponse) {
+                $('#mep-parse-result')
+                    .html('<div style="background:#f8d7da;color:#721c24;padding:12px;border-radius:4px;border-left:4px solid #d63638;">❌ Il campo è vuoto. Incolla prima la risposta di ChatGPT.</div>')
+                    .show();
+                return;
+            }
+            
+            // Parser robusto con delimitatori — case-insensitive, gestisce righe vuote extra
+            function escapeRegex(str) {
+                return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+            function extractBetween(text, startDelim, endDelim) {
+                const startRe = new RegExp(escapeRegex(startDelim), 'im');
+                const endRe = new RegExp(escapeRegex(endDelim), 'im');
+                const startMatch = startRe.exec(text);
+                if (!startMatch) return null;
+                const afterStart = text.slice(startMatch.index + startMatch[0].length);
+                const endMatch = endRe.exec(afterStart);
+                if (!endMatch) return null;
+                return afterStart.slice(0, endMatch.index).trim();
+            }
+            
+            const seoTitle    = extractBetween(rawResponse, '---TITOLO_SEO---',       '---META_DESCRIPTION---');
+            const metaDesc    = extractBetween(rawResponse, '---META_DESCRIPTION---', '---FOCUS_KEYWORD---');
+            const focusKw     = extractBetween(rawResponse, '---FOCUS_KEYWORD---',    '---CONTENUTO_HTML---');
+            const htmlContent = extractBetween(rawResponse, '---CONTENUTO_HTML---',   '---FINE---');
+            
+            if (seoTitle === null && metaDesc === null && focusKw === null && htmlContent === null) {
+                $('#mep-parse-result')
+                    .html('<div style="background:#f8d7da;color:#721c24;padding:12px;border-radius:4px;border-left:4px solid #d63638;">❌ <strong>Formato non riconosciuto.</strong><br>Assicurati che la risposta di ChatGPT contenga i delimitatori:<br><code>---TITOLO_SEO---</code>, <code>---META_DESCRIPTION---</code>, <code>---FOCUS_KEYWORD---</code>, <code>---CONTENUTO_HTML---</code>, <code>---FINE---</code></div>')
+                    .show();
+                return;
+            }
+            
+            let filledCount = 0;
+            
+            if (seoTitle) {
+                $('#seo_title').val(seoTitle);
+                updateSeoCounter();
+                filledCount++;
+            }
+            if (metaDesc) {
+                $('#seo_description').val(metaDesc);
+                updateDescCounter();
+                filledCount++;
+            }
+            if (focusKw) {
+                $('#seo_focus_keyword').val(focusKw);
+                filledCount++;
+            }
+            if (htmlContent) {
+                $('#event_content').val(htmlContent);
+                filledCount++;
+            }
+            
+            if (filledCount > 0) {
+                const plural = filledCount > 1 ? 'i' : '';
+                $('#mep-parse-result')
+                    .html(`<div style="background:#d4edda;color:#155724;padding:12px;border-radius:4px;border-left:4px solid #28a745;">✅ <strong>${filledCount} campo${plural} compilato${plural} automaticamente!</strong> Controlla i valori e poi clicca "Crea Evento".</div>`)
+                    .show();
+                
+                // Scroll verso la sezione dettagli evento
+                $('html, body').animate({
+                    scrollTop: $('#event_content').offset().top - 150
+                }, 600);
+            } else {
+                $('#mep-parse-result')
+                    .html('<div style="background:#fff3cd;color:#856404;padding:12px;border-radius:4px;border-left:4px solid #ffc107;">⚠️ Delimitatori trovati ma nessun contenuto estratto. Controlla che la risposta di ChatGPT sia nel formato corretto.</div>')
+                    .show();
+            }
         });
         
         // ===== Submit Form =====
