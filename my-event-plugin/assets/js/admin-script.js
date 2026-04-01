@@ -752,12 +752,13 @@ ${formatoOutput}`;
         });
         
         // ===== Analizza e Compila Campi da risposta ChatGPT =====
-        $('#mep-parse-chatgpt-btn').on('click', function() {
-            const rawResponse = $('#mep-chatgpt-response').val().trim();
+        $('#mep-parse-response-btn').on('click', function() {
+            const rawResponse = $('#mep-chatgpt-response-input').val().trim();
+            const $msg = $('#mep-parse-result-message');
             
             if (!rawResponse) {
-                $('#mep-parse-result')
-                    .html('<div style="background:#f8d7da;color:#721c24;padding:12px;border-radius:4px;border-left:4px solid #d63638;">❌ Il campo è vuoto. Incolla prima la risposta di ChatGPT.</div>')
+                $msg.text('❌ Il campo è vuoto. Incolla prima la risposta di ChatGPT.')
+                    .css('color', '#dc3545')
                     .show();
                 return;
             }
@@ -783,8 +784,8 @@ ${formatoOutput}`;
             const htmlContent = extractBetween(rawResponse, '---CONTENUTO_HTML---',   '---FINE---');
             
             if (seoTitle === null && metaDesc === null && focusKw === null && htmlContent === null) {
-                $('#mep-parse-result')
-                    .html('<div style="background:#f8d7da;color:#721c24;padding:12px;border-radius:4px;border-left:4px solid #d63638;">❌ <strong>Formato non riconosciuto.</strong><br>Assicurati che la risposta di ChatGPT contenga i delimitatori:<br><code>---TITOLO_SEO---</code>, <code>---META_DESCRIPTION---</code>, <code>---FOCUS_KEYWORD---</code>, <code>---CONTENUTO_HTML---</code>, <code>---FINE---</code></div>')
+                $msg.html('❌ Formato non riconosciuto. Usa i delimitatori: <code>---TITOLO_SEO---</code>, <code>---META_DESCRIPTION---</code>, <code>---FOCUS_KEYWORD---</code>, <code>---CONTENUTO_HTML---</code>, <code>---FINE---</code>')
+                    .css('color', '#dc3545')
                     .show();
                 return;
             }
@@ -812,8 +813,8 @@ ${formatoOutput}`;
             
             if (filledCount > 0) {
                 const plural = filledCount > 1 ? 'i' : '';
-                $('#mep-parse-result')
-                    .html(`<div style="background:#d4edda;color:#155724;padding:12px;border-radius:4px;border-left:4px solid #28a745;">✅ <strong>${filledCount} campo${plural} compilato${plural} automaticamente!</strong> Controlla i valori e poi clicca "Crea Evento".</div>`)
+                $msg.text('✅ ' + filledCount + ' campo' + plural + ' compilato' + plural + ' automaticamente!')
+                    .css('color', '#28a745')
                     .show();
                 
                 // Scroll verso la sezione dettagli evento
@@ -821,8 +822,8 @@ ${formatoOutput}`;
                     scrollTop: $('#event_content').offset().top - 150
                 }, 600);
             } else {
-                $('#mep-parse-result')
-                    .html('<div style="background:#fff3cd;color:#856404;padding:12px;border-radius:4px;border-left:4px solid #ffc107;">⚠️ Delimitatori trovati ma nessun contenuto estratto. Controlla che la risposta di ChatGPT sia nel formato corretto.</div>')
+                $msg.text('⚠️ Delimitatori trovati ma nessun contenuto estratto. Controlla il formato della risposta.')
+                    .css('color', '#856404')
                     .show();
             }
         });

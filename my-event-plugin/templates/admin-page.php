@@ -318,32 +318,35 @@ defined('ABSPATH') || exit;
                 <!-- Container per il prompt ChatGPT -->
                 <div id="mep-chatgpt-prompt-container" style="display: none; margin-bottom: 20px;"></div>
                 
-                <!-- Sezione Incolla Risposta ChatGPT -->
-                <div id="mep-chatgpt-response-section" style="display: none; margin-bottom: 20px;">
-                    <div style="padding: 20px; background: #f0f6fc; border: 2px solid #0073aa; border-radius: 8px;">
-                        <h4 style="margin: 0 0 12px 0; color: #0073aa; display: flex; align-items: center; gap: 8px;">
-                            <span class="dashicons dashicons-clipboard" style="font-size: 20px; width: 20px; height: 20px;"></span>
-                            <?php _e('📋 Incolla qui la risposta completa di ChatGPT', 'my-event-plugin'); ?>
-                        </h4>
-                        <p style="margin: 0 0 10px 0; color: #646970; font-size: 13px;">
-                            <?php _e('Incolla l\'intera risposta di ChatGPT (inclusi i delimitatori). Il plugin compilerà automaticamente tutti i campi.', 'my-event-plugin'); ?>
+                <!-- 🤖 Sezione Incolla Risposta ChatGPT -->
+                <div id="mep-chatgpt-response-section" class="mep-section" style="display: none; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; color: white; display: flex; align-items: center; gap: 10px;">
+                            <span class="dashicons dashicons-welcome-write-blog" style="font-size: 24px; width: 24px; height: 24px;"></span>
+                            <?php _e('📋 Incolla la Risposta di ChatGPT', 'my-event-plugin'); ?>
+                        </h3>
+                        <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                            <?php _e('Incolla qui la risposta completa di ChatGPT. I campi verranno compilati automaticamente!', 'my-event-plugin'); ?>
                         </p>
-                        <textarea id="mep-chatgpt-response"
+                    </div>
+
+                    <div class="mep-form-row">
+                        <textarea id="mep-chatgpt-response-input"
+                                  class="mep-textarea code"
                                   rows="12"
-                                  style="width: 100%; padding: 10px; border: 1px solid #c3c4c7; border-radius: 4px;
-                                         font-family: monospace; font-size: 12px; resize: vertical; background: #fff;"
-                                  placeholder="---TITOLO_SEO---&#10;[Titolo SEO qui]&#10;---META_DESCRIPTION---&#10;[Meta description qui]&#10;---FOCUS_KEYWORD---&#10;[Focus keyword qui]&#10;---CONTENUTO_HTML---&#10;[HTML articolo qui]&#10;---FINE---"></textarea>
-                        <div style="margin-top: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            <button type="button" id="mep-parse-chatgpt-btn" class="button button-primary"
-                                    style="background: #0073aa; border-color: #0073aa;">
-                                <span class="dashicons dashicons-update" style="margin-right: 5px; margin-top: 3px;"></span>
-                                <?php _e('🔄 Analizza e Compila Campi', 'my-event-plugin'); ?>
-                            </button>
-                            <span style="color: #646970; font-size: 13px;">
-                                <?php _e('Compila automaticamente: Contenuto HTML, Titolo SEO, Meta Description, Focus Keyword', 'my-event-plugin'); ?>
-                            </span>
-                        </div>
-                        <div id="mep-parse-result" style="margin-top: 12px; display: none;"></div>
+                                  placeholder="<?php esc_attr_e('Incolla qui tutta la risposta di ChatGPT...', 'my-event-plugin'); ?>"
+                                  style="width: 100%; font-family: monospace; font-size: 12px;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                        <button type="button"
+                                id="mep-parse-response-btn"
+                                class="button button-primary button-large"
+                                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; font-weight: 600; padding: 10px 25px;">
+                            <span class="dashicons dashicons-controls-repeat" style="margin-top: 4px;"></span>
+                            <?php _e('🔄 Analizza e Compila Campi', 'my-event-plugin'); ?>
+                        </button>
+                        <span id="mep-parse-result-message" style="display: none; font-weight: 600;"></span>
                     </div>
                 </div>
                 
