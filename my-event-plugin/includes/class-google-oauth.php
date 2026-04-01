@@ -7,20 +7,12 @@ defined('ABSPATH') || exit;
 
 class MEP_Google_OAuth {
     
-    /**
-     * Endpoint OAuth Google
-     */
-    const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const AUTH_URL  = 'https://accounts.google.com/o/oauth2/v2/auth';
     const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-    const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+    const SCOPE     = 'https://www.googleapis.com/auth/drive.readonly';
     
-    /**
-     * Ottieni URL di autorizzazione
-     * 
-     * @return string URL per redirect
-     */
     public static function get_auth_url() {
-        $client_id = get_option('mep_google_client_id');
+        $client_id    = get_option('mep_google_client_id');
         $redirect_uri = self::get_redirect_uri();
         
         if (empty($client_id)) {
@@ -28,37 +20,26 @@ class MEP_Google_OAuth {
         }
         
         $params = [
-            'client_id' => $client_id,
-            'redirect_uri' => $redirect_uri,
+            'client_id'     => $client_id,
+            'redirect_uri'  => $redirect_uri,
             'response_type' => 'code',
-            'scope' => self::SCOPE,
-            'access_type' => 'offline',
-            'prompt' => 'consent', // Forza refresh token
-            'state' => wp_create_nonce('mep_google_oauth')
+            'scope'         => self::SCOPE,
+            'access_type'   => 'offline',
+            'prompt'        => 'consent',
+            'state'         => wp_create_nonce('mep_google_oauth')
         ];
         
         return self::AUTH_URL . '?' . http_build_query($params);
     }
     
-    /**
-     * Ottieni Redirect URI per OAuth
-     * 
-     * @return string
-     */
     public static function get_redirect_uri() {
         return admin_url('admin.php?page=my-event-settings&google_auth=callback');
     }
     
-    /**
-     * Scambia authorization code con access token
-     * 
-     * @param string $code Authorization code
-     * @return array|WP_Error Token data o errore
-     */
     public static function exchange_code_for_token($code) {
-        $client_id = get_option('mep_google_client_id');
+        $client_id     = get_option('mep_google_client_id');
         $client_secret = get_option('mep_google_client_secret');
-        $redirect_uri = self::get_redirect_uri();
+        $redirect_uri  = self::get_redirect_uri();
         
         if (empty($client_id) || empty($client_secret)) {
             return new WP_Error('missing_credentials', __('Client ID o Secret mancanti', 'my-event-plugin'));
@@ -68,11 +49,11 @@ class MEP_Google_OAuth {
         
         $response = wp_remote_post(self::TOKEN_URL, [
             'body' => [
-                'code' => $code,
-                'client_id' => $client_id,
+                'code'          => $code,
+                'client_id'     => $client_id,
                 'client_secret' => $client_secret,
-                'redirect_uri' => $redirect_uri,
-                'grant_type' => 'authorization_code'
+                'redirect_uri'  => $redirect_uri,
+                'grant_type'    => 'authorization_code'
             ],
             'timeout' => 30
         ]);
@@ -95,7 +76,6 @@ class MEP_Google_OAuth {
             return new WP_Error('no_token', __('Token non ricevuto', 'my-event-plugin'));
         }
         
-        // Salva token
         self::save_token_data($data);
         
         MEP_Helpers::log_info("✅ Token salvato con successo");
@@ -103,30 +83,19 @@ class MEP_Google_OAuth {
         return $data;
     }
     
-    /**
-     * Salva token data nelle options
-     * 
-     * @param array $token_data
-     */
     private static function save_token_data($token_data) {
-        update_option('mep_google_access_token', $token_data['access_token']);
-        update_option('mep_google_token_type', $token_data['token_type'] ?? 'Bearer');
-        update_option('mep_google_expires_in', $token_data['expires_in'] ?? 3600);
+        update_option('mep_google_access_token',    $token_data['access_token']);
+        update_option('mep_google_token_type',      $token_data['token_type'] ?? 'Bearer');
+        update_option('mep_google_expires_in',      $token_data['expires_in'] ?? 3600);
         update_option('mep_google_token_created_at', time());
         
-        // Refresh token (solo alla prima autorizzazione)
         if (isset($token_data['refresh_token'])) {
             update_option('mep_google_refresh_token', $token_data['refresh_token']);
         }
     }
     
-    /**
-     * Ottieni access token valido (refresh automatico se scaduto)
-     * 
-     * @return string|WP_Error Token o errore
-     */
     public static function get_access_token() {
-        $token = get_option('mep_google_access_token');
+        $token      = get_option('mep_google_access_token');
         $created_at = get_option('mep_google_token_created_at');
         $expires_in = get_option('mep_google_expires_in', 3600);
         
@@ -140,7 +109,6 @@ class MEP_Google_OAuth {
         if (time() >= $expires_at) {
             MEP_Helpers::log_info("🔄 Token scaduto, refresh in corso");
             
-            // Refresh token
             $result = self::refresh_access_token();
             
             if (is_wp_error($result)) {
@@ -153,14 +121,9 @@ class MEP_Google_OAuth {
         return $token;
     }
     
-    /**
-     * Refresh access token usando refresh token
-     * 
-     * @return array|WP_Error Nuovi token data o errore
-     */
     public static function refresh_access_token() {
         $refresh_token = get_option('mep_google_refresh_token');
-        $client_id = get_option('mep_google_client_id');
+        $client_id     = get_option('mep_google_client_id');
         $client_secret = get_option('mep_google_client_secret');
         
         if (empty($refresh_token)) {
@@ -176,9 +139,9 @@ class MEP_Google_OAuth {
         $response = wp_remote_post(self::TOKEN_URL, [
             'body' => [
                 'refresh_token' => $refresh_token,
-                'client_id' => $client_id,
+                'client_id'     => $client_id,
                 'client_secret' => $client_secret,
-                'grant_type' => 'refresh_token'
+                'grant_type'    => 'refresh_token'
             ],
             'timeout' => 30
         ]);
@@ -201,7 +164,6 @@ class MEP_Google_OAuth {
             return new WP_Error('no_token', __('Token non ricevuto', 'my-event-plugin'));
         }
         
-        // Salva nuovo token (mantiene refresh token esistente)
         self::save_token_data($data);
         
         MEP_Helpers::log_info("✅ Token refreshato con successo");
@@ -209,21 +171,13 @@ class MEP_Google_OAuth {
         return $data;
     }
     
-    /**
-     * Verifica se è autorizzato
-     * 
-     * @return bool
-     */
     public static function is_authorized() {
-        $token = get_option('mep_google_access_token');
+        $token         = get_option('mep_google_access_token');
         $refresh_token = get_option('mep_google_refresh_token');
         
         return !empty($token) || !empty($refresh_token);
     }
     
-    /**
-     * Revoca autorizzazione (cancella token)
-     */
     public static function revoke_authorization() {
         delete_option('mep_google_access_token');
         delete_option('mep_google_refresh_token');
@@ -234,11 +188,6 @@ class MEP_Google_OAuth {
         MEP_Helpers::log_info("🗑️ Autorizzazione Google revocata");
     }
     
-    /**
-     * Ottieni info token (per debug)
-     * 
-     * @return array
-     */
     public static function get_token_info() {
         $created_at = get_option('mep_google_token_created_at');
         $expires_in = get_option('mep_google_expires_in', 3600);
@@ -247,12 +196,12 @@ class MEP_Google_OAuth {
         $is_expired = time() >= $expires_at;
         
         return [
-            'has_access_token' => !empty(get_option('mep_google_access_token')),
+            'has_access_token'  => !empty(get_option('mep_google_access_token')),
             'has_refresh_token' => !empty(get_option('mep_google_refresh_token')),
-            'created_at' => $created_at ? date('Y-m-d H:i:s', $created_at) : 'N/A',
-            'expires_at' => $expires_at ? date('Y-m-d H:i:s', $expires_at) : 'N/A',
-            'is_expired' => $is_expired,
-            'time_to_expiry' => $expires_at ? max(0, $expires_at - time()) : 0
+            'created_at'        => $created_at ? date('Y-m-d H:i:s', $created_at) : 'N/A',
+            'expires_at'        => $expires_at  ? date('Y-m-d H:i:s', $expires_at) : 'N/A',
+            'is_expired'        => $is_expired,
+            'time_to_expiry'    => $expires_at  ? max(0, $expires_at - time()) : 0
         ];
     }
 }
