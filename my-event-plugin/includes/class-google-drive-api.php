@@ -245,6 +245,22 @@ class MEP_Google_Drive_API {
             return $token;
         }
 
+        // Deduplication: if this Google Drive file was already imported, return existing attachment.
+        $existing = get_posts([
+            'post_type'      => 'attachment',
+            'post_status'    => 'inherit',
+            'meta_key'       => '_gdrive_file_id',
+            'meta_value'     => $file_id,
+            'numberposts'    => 1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        ]);
+
+        if (!empty($existing)) {
+            MEP_Helpers::log_info("⚡ File già importato (attachment ID: {$existing[0]}), salto download: {$file_name}");
+            return $existing[0];
+        }
+
         MEP_Helpers::log_info("📥 Download file: {$file_name} ({$file_id})");
 
         try {

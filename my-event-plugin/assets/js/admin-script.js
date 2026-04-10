@@ -662,16 +662,19 @@
             // Estrai solo il nome dell'evento (rimuovi la data DD-MM-AAAA dalla fine)
             const nomeEvento = folderName.replace(/\s+\d{2}-\d{2}-\d{4}$/, '').trim() || folderName;
             
-            // Raccogli gli URL delle foto già importate dal container (source of truth)
+            // Raccogli gli URL delle foto già importate dal container (source of truth),
+            // escludendo la foto usata come copertina (featuredIndex)
             const photoUrlsForPrompt = [];
             $('#mep-imported-links-container a').each(function(idx) {
-                photoUrlsForPrompt.push($(this).attr('href'));
+                if (idx !== featuredIndex) {
+                    photoUrlsForPrompt.push($(this).attr('href'));
+                }
             });
             
             // Sezione foto nel prompt
             let sezionePhoto = '';
             if (photoUrlsForPrompt.length > 0) {
-                sezionePhoto = `\nHo già importato le seguenti foto dell'evento in WordPress. Inseriscile nell'articolo usando tag <img> con questi URL esatti (usa style="max-width:100%;height:auto;" su ogni img):\n`;
+                sezionePhoto = `\nHo già importato le seguenti foto dell'evento in WordPress (la foto di copertina è esclusa perché già impostata separatamente). Inseriscile nell'articolo usando tag <img> con questi URL esatti (usa style="max-width:100%;height:auto;" su ogni img):\n`;
                 photoUrlsForPrompt.forEach((url, idx) => {
                     sezionePhoto += `- Foto ${idx + 1}: ${url}\n`;
                 });
