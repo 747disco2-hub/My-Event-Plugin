@@ -10,6 +10,24 @@
         console.log('🚀 My Event Plugin v1.2 - Admin Script caricato');
         console.log('📊 Config:', mepData);
         
+        // ===== Utility: converte testo in slug URL-friendly =====
+        function slugify(text) {
+            return text
+                .toLowerCase()
+                .trim()
+                .replace(/[àáâãäå]/g, 'a')
+                .replace(/[èéêë]/g, 'e')
+                .replace(/[ìíîï]/g, 'i')
+                .replace(/[òóôõö]/g, 'o')
+                .replace(/[ùúûü]/g, 'u')
+                .replace(/[ç]/g, 'c')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/[\s_]+/g, '-')
+                .replace(/-{2,}/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+        
         // ===== Inizializzazione =====
         const MEP = {
             form: $('#mep-event-form'),
@@ -35,6 +53,15 @@
                 MEP.seoTitle.val($(this).val());
                 updateSeoCounter();
             }
+            // Auto-popola lo slug solo se l'utente non l'ha ancora modificato manualmente
+            if (!$('#event_slug').data('manually-edited')) {
+                $('#event_slug').val(slugify($(this).val()));
+            }
+        });
+        
+        // Segna il campo slug come modificato manualmente quando l'utente ci scrive
+        $('#event_slug').on('input', function() {
+            $(this).data('manually-edited', true);
         });
         
         // ===== Counter SEO Title =====
@@ -689,6 +716,8 @@
 [Scrivi qui la meta description, massimo 160 caratteri]
 ---FOCUS_KEYWORD---
 [Scrivi qui la focus keyword principale]
+---PERMALINK---
+[Scrivi qui lo slug URL: solo lettere minuscole, numeri e trattini, niente spazi né caratteri speciali]
 ---CONTENUTO_HTML---
 [Scrivi qui il testo HTML completo dell'articolo]
 ---FINE---`;
@@ -700,7 +729,8 @@ ISTRUZIONI:
 - Scrivi in italiano, tono coinvolgente e promozionale
 - Usa tag HTML per la formattazione: <h2>, <h3>, <p>, <strong>, <em>, e <ul>/<li> dove appropriato
 - L'articolo deve essere informativo e invogliare a partecipare all'evento
-- Includi riferimenti al tipo di locale/discoteca/venue${sezionePhoto}
+- Includi riferimenti al tipo di locale/discoteca/venue
+- Il permalink (slug) deve essere SEO-friendly: usa solo lettere minuscole, numeri e trattini (es: serata-live-music-15-marzo)${sezionePhoto}
 FORMATO RISPOSTA OBBLIGATORIO:
 Rispondi ESCLUSIVAMENTE con il seguente formato, senza testo aggiuntivo prima o dopo:
 
@@ -783,11 +813,12 @@ ${formatoOutput}`;
             
             const seoTitle    = extractBetween(rawResponse, '---TITOLO_SEO---',       '---META_DESCRIPTION---');
             const metaDesc    = extractBetween(rawResponse, '---META_DESCRIPTION---', '---FOCUS_KEYWORD---');
-            const focusKw     = extractBetween(rawResponse, '---FOCUS_KEYWORD---',    '---CONTENUTO_HTML---');
+            const focusKw     = extractBetween(rawResponse, '---FOCUS_KEYWORD---',    '---PERMALINK---');
+            const permalink   = extractBetween(rawResponse, '---PERMALINK---',        '---CONTENUTO_HTML---');
             const htmlContent = extractBetween(rawResponse, '---CONTENUTO_HTML---',   '---FINE---');
             
-            if (seoTitle === null && metaDesc === null && focusKw === null && htmlContent === null) {
-                $msg.html('❌ Formato non riconosciuto. Usa i delimitatori: <code>---TITOLO_SEO---</code>, <code>---META_DESCRIPTION---</code>, <code>---FOCUS_KEYWORD---</code>, <code>---CONTENUTO_HTML---</code>, <code>---FINE---</code>')
+            if (seoTitle === null && metaDesc === null && focusKw === null && permalink === null && htmlContent === null) {
+                $msg.html('❌ Formato non riconosciuto. Usa i delimitatori: <code>---TITOLO_SEO---</code>, <code>---META_DESCRIPTION---</code>, <code>---FOCUS_KEYWORD---</code>, <code>---PERMALINK---</code>, <code>---CONTENUTO_HTML---</code>, <code>---FINE---</code>')
                     .css('color', '#dc3545')
                     .show();
                 return;
@@ -807,6 +838,13 @@ ${formatoOutput}`;
             }
             if (focusKw) {
                 $('#seo_focus_keyword').val(focusKw);
+                filledCount++;
+            }
+            if (permalink) {
+                const cleanSlug = slugify(permalink);
+                // Non impostare 'manually-edited' in modo che il titolo possa ancora
+                // sovrascrivere lo slug se l'utente modifica il titolo dopo l'auto-compilazione
+                $('#event_slug').val(cleanSlug);
                 filledCount++;
             }
             if (htmlContent) {

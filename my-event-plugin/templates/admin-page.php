@@ -203,6 +203,21 @@ defined('ABSPATH') || exit;
                         </p>
                     </div>
                     
+                    <!-- Permalink (Slug) -->
+                    <div class="mep-form-row">
+                        <label for="event_slug" class="mep-label">
+                            <?php _e('Permalink (Slug)', 'my-event-plugin'); ?>
+                        </label>
+                        <input type="text"
+                               id="event_slug"
+                               name="event_slug"
+                               class="mep-input large"
+                               placeholder="<?php esc_attr_e('es: serata-live-music-sabato-15-marzo', 'my-event-plugin'); ?>">
+                        <p class="mep-description">
+                            <?php _e('URL-friendly dell\'articolo. Lascia vuoto per generarlo automaticamente dal titolo. Si compila automaticamente con ChatGPT.', 'my-event-plugin'); ?>
+                        </p>
+                    </div>
+                    
                     <!-- Categoria -->
                     <div class="mep-form-row">
                         <label for="event_category" class="mep-label required">
