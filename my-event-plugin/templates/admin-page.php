@@ -21,11 +21,11 @@ defined('ABSPATH') || exit;
                 <h3><?php _e('📋 Come Funziona', 'my-event-plugin'); ?></h3>
                 <ol>
                     <li><?php _e('Naviga nel tuo Google Drive e seleziona la cartella con le foto', 'my-event-plugin'); ?></li>
-                    <li><?php _e('Seleziona 4 foto da importare in WordPress', 'my-event-plugin'); ?></li>
-                    <li><?php _e('Scegli quale foto usare come copertina', 'my-event-plugin'); ?></li>
-                    <li><?php _e('Importa le foto nella Media Library', 'my-event-plugin'); ?></li>
-                    <li><?php _e('Seleziona la categoria e usa "Genera Prompt ChatGPT" per auto-compilare il contenuto', 'my-event-plugin'); ?></li>
-                    <li><?php _e('Compila i restanti dettagli e clicca "Crea Evento"', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Seleziona le foto e importale nella Media Library', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Scegli la foto di copertina (esclusa dal prompt ChatGPT)', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Inserisci il titolo dell\'evento e scegli la categoria', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Genera il prompt ChatGPT e incolla la risposta per auto-compilare i campi', 'my-event-plugin'); ?></li>
+                    <li><?php _e('Verifica i campi compilati (slug, contenuto, SEO) e clicca "Crea Evento"', 'my-event-plugin'); ?></li>
                 </ol>
             </div>
             
@@ -172,36 +172,118 @@ defined('ABSPATH') || exit;
                         <?php _e('Passo 3: Scegli la Foto di Copertina', 'my-event-plugin'); ?>
                     </h2>
                     <p style="margin: 0 0 15px 0; color: #646970;">
-                        <?php _e('Seleziona quale foto usare come immagine in evidenza dell\'articolo (quella che appare nelle anteprime)', 'my-event-plugin'); ?>
+                        <?php _e('Seleziona quale foto usare come immagine in evidenza dell\'articolo (quella che appare nelle anteprime). La foto di copertina sarà esclusa dalla galleria nel prompt ChatGPT.', 'my-event-plugin'); ?>
                     </p>
                     <select id="mep-featured-image-select" name="featured_image_index" class="mep-select" style="max-width: 100%;">
                         <option value=""><?php _e('-- Seleziona immagine di copertina --', 'my-event-plugin'); ?></option>
                     </select>
                 </div>
                 
-                <!-- 📝 PASSO 4: Dettagli Evento -->
+                <!-- 📝 PASSO 4: Titolo e Categoria -->
                 <div class="mep-section">
                     <h2 class="mep-section-title">
                         <span class="dashicons dashicons-edit"></span>
-                        <?php _e('Passo 4: Dettagli Evento', 'my-event-plugin'); ?>
+                        <?php _e('Passo 4: Titolo e Categoria', 'my-event-plugin'); ?>
                     </h2>
-                    
+
                     <!-- Titolo Evento -->
                     <div class="mep-form-row">
                         <label for="event_title" class="mep-label required">
                             <?php _e('Titolo Evento', 'my-event-plugin'); ?>
                         </label>
-                        <input type="text" 
-                               id="event_title" 
-                               name="event_title" 
-                               class="mep-input large" 
+                        <input type="text"
+                               id="event_title"
+                               name="event_title"
+                               class="mep-input large"
                                required
                                placeholder="<?php esc_attr_e('Es: Serata Live Music - Sabato 15 Marzo', 'my-event-plugin'); ?>">
                         <p class="mep-description">
                             <?php _e('Il titolo principale che apparirà nell\'articolo', 'my-event-plugin'); ?>
                         </p>
                     </div>
-                    
+
+                    <!-- Categoria -->
+                    <div class="mep-form-row">
+                        <label for="event_category" class="mep-label required">
+                            <?php _e('Categoria Articolo', 'my-event-plugin'); ?>
+                        </label>
+                        <?php
+                        wp_dropdown_categories([
+                            'name'             => 'event_category',
+                            'id'               => 'event_category',
+                            'class'            => 'mep-select',
+                            'hide_empty'       => false,
+                            'required'         => true,
+                            'show_option_none' => __('-- Seleziona Categoria --', 'my-event-plugin'),
+                            'option_none_value'=> ''
+                        ]);
+                        ?>
+                    </div>
+                </div>
+
+                <!-- 🤖 PASSO 5: ChatGPT -->
+                <div class="mep-section">
+                    <h2 class="mep-section-title">
+                        <span class="dashicons dashicons-format-chat"></span>
+                        <?php _e('Passo 5: Genera Contenuto con ChatGPT', 'my-event-plugin'); ?>
+                    </h2>
+                    <p class="mep-description" style="margin-bottom: 15px;">
+                        <?php _e('Clicca il pulsante per generare il prompt, poi incollalo in ChatGPT. Infine, incolla la risposta nel campo sottostante per compilare automaticamente tutti i campi.', 'my-event-plugin'); ?>
+                    </p>
+
+                    <!-- Pulsante Genera Prompt -->
+                    <div class="mep-form-actions" style="margin-bottom: 20px; border-top: none; padding-top: 0; margin-top: 0;">
+                        <button type="button"
+                                class="button button-secondary button-hero"
+                                id="mep-generate-prompt-btn"
+                                style="background: #e7f5ff; border-color: #0073aa; color: #0073aa;">
+                            <span class="dashicons dashicons-format-chat"></span>
+                            <?php _e('Genera Prompt ChatGPT', 'my-event-plugin'); ?>
+                        </button>
+                    </div>
+
+                    <!-- Container per il prompt generato -->
+                    <div id="mep-chatgpt-prompt-container" style="display: none; margin-bottom: 20px;"></div>
+
+                    <!-- Sezione Incolla Risposta ChatGPT -->
+                    <div id="mep-chatgpt-response-section" style="display: none;">
+                        <div class="mep-step-banner mep-step-banner--chatgpt" style="margin-bottom: 15px;">
+                            <h3>
+                                <span class="dashicons dashicons-welcome-write-blog" style="font-size: 24px; width: 24px; height: 24px;"></span>
+                                <?php _e('📋 Incolla la Risposta di ChatGPT', 'my-event-plugin'); ?>
+                            </h3>
+                            <p>
+                                <?php _e('Incolla qui la risposta completa di ChatGPT. I campi verranno compilati automaticamente!', 'my-event-plugin'); ?>
+                            </p>
+                        </div>
+
+                        <div class="mep-form-row">
+                            <textarea id="mep-chatgpt-response-input"
+                                      class="mep-textarea code"
+                                      rows="12"
+                                      placeholder="<?php esc_attr_e('Incolla qui tutta la risposta di ChatGPT...', 'my-event-plugin'); ?>"></textarea>
+                        </div>
+
+                        <div class="mep-chatgpt-actions">
+                            <button type="button"
+                                    id="mep-parse-response-btn"
+                                    class="button button-primary button-large"
+                                    style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; font-weight: 600; padding: 10px 25px;">
+                                <span class="dashicons dashicons-controls-repeat" style="margin-top: 4px;"></span>
+                                <?php _e('🔄 Analizza e Compila Campi', 'my-event-plugin'); ?>
+                            </button>
+                            <span id="mep-parse-result-message" style="display: none; font-weight: 600;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ✏️ PASSO 6: Campi compilati da ChatGPT -->
+                <div class="mep-section">
+                    <h2 class="mep-section-title">
+                        <span class="dashicons dashicons-edit"></span>
+                        <?php _e('Passo 6: Dettagli Compilati (da ChatGPT o manualmente)', 'my-event-plugin'); ?>
+                    </h2>
+
                     <!-- Permalink (Slug) -->
                     <div class="mep-form-row">
                         <label for="event_slug" class="mep-label">
@@ -216,48 +298,28 @@ defined('ABSPATH') || exit;
                             <?php _e('URL-friendly dell\'articolo. Lascia vuoto per generarlo automaticamente dal titolo. Si compila automaticamente con ChatGPT.', 'my-event-plugin'); ?>
                         </p>
                     </div>
-                    
-                    <!-- Categoria -->
-                    <div class="mep-form-row">
-                        <label for="event_category" class="mep-label required">
-                            <?php _e('Categoria Articolo', 'my-event-plugin'); ?>
-                        </label>
-                        <?php 
-                        wp_dropdown_categories([
-                            'name' => 'event_category',
-                            'id' => 'event_category',
-                            'class' => 'mep-select',
-                            'hide_empty' => false,
-                            'required' => true,
-                            'show_option_none' => __('-- Seleziona Categoria --', 'my-event-plugin'),
-                            'option_none_value' => ''
-                        ]);
-                        ?>
-                    </div>
-                    
+
                     <!-- Contenuto HTML -->
                     <div class="mep-form-row">
                         <label for="event_content" class="mep-label">
                             <?php _e('Contenuto Evento (HTML)', 'my-event-plugin'); ?>
                         </label>
-                        <textarea id="event_content" 
-                                  name="event_content" 
-                                  class="mep-textarea code" 
+                        <textarea id="event_content"
+                                  name="event_content"
+                                  class="mep-textarea code"
                                   rows="8"
-                                  placeholder="<?php esc_attr_e('Incolla qui il codice HTML del contenuto dell\'evento...', 'my-event-plugin'); ?>"></textarea>
+                                  placeholder="<?php esc_attr_e('Si compila automaticamente con ChatGPT, oppure incolla qui il codice HTML del contenuto dell\'evento...', 'my-event-plugin'); ?>"></textarea>
                         <p class="mep-description">
                             <?php _e('Puoi incollare HTML. Lascia vuoto per usare il contenuto del template.', 'my-event-plugin'); ?>
                         </p>
                     </div>
-                </div>
-                
-                <!-- SEO Section -->
-                <div class="mep-section">
-                    <h2 class="mep-section-title">
+
+                    <!-- SEO Section -->
+                    <h3 class="mep-section-title" style="margin-top: 20px;">
                         <span class="dashicons dashicons-chart-line"></span>
                         <?php _e('SEO - Ottimizzazione Motori di Ricerca', 'my-event-plugin'); ?>
-                    </h2>
-                    
+                    </h3>
+
                     <?php if (MEP_Helpers::is_rankmath_active()): ?>
                         <p class="mep-notice mep-notice-success">
                             ✓ <?php _e('Rank Math è attivo. I metadati SEO verranno salvati automaticamente.', 'my-event-plugin'); ?>
@@ -267,100 +329,51 @@ defined('ABSPATH') || exit;
                             <?php _e('Installa Rank Math per gestire al meglio la SEO dei tuoi eventi.', 'my-event-plugin'); ?>
                         </p>
                     <?php endif; ?>
-                    
+
                     <div class="mep-form-row">
                         <label for="seo_focus_keyword" class="mep-label">
                             <?php _e('Focus Keyword', 'my-event-plugin'); ?>
                         </label>
-                        <input type="text" 
-                               id="seo_focus_keyword" 
-                               name="seo_focus_keyword" 
+                        <input type="text"
+                               id="seo_focus_keyword"
+                               name="seo_focus_keyword"
                                class="mep-input"
                                placeholder="<?php esc_attr_e('Es: live music roma', 'my-event-plugin'); ?>">
                         <p class="mep-description">
                             <?php _e('Parola chiave principale per cui vuoi posizionare l\'articolo', 'my-event-plugin'); ?>
                         </p>
                     </div>
-                    
+
                     <div class="mep-form-row">
                         <label for="seo_title" class="mep-label">
                             <?php _e('Titolo SEO', 'my-event-plugin'); ?>
                         </label>
-                        <input type="text" 
-                               id="seo_title" 
-                               name="seo_title" 
-                               class="mep-input large" 
+                        <input type="text"
+                               id="seo_title"
+                               name="seo_title"
+                               class="mep-input large"
                                maxlength="60"
                                placeholder="<?php esc_attr_e('Lascia vuoto per usare il titolo evento', 'my-event-plugin'); ?>">
                         <p class="mep-description">
-                            <span class="seo-counter">0/60</span> caratteri • 
+                            <span class="seo-counter">0/60</span> caratteri •
                             <?php _e('Questo titolo apparirà nei risultati di Google', 'my-event-plugin'); ?>
                         </p>
                     </div>
-                    
+
                     <div class="mep-form-row">
                         <label for="seo_description" class="mep-label">
                             <?php _e('Meta Description', 'my-event-plugin'); ?>
                         </label>
-                        <textarea id="seo_description" 
-                                  name="seo_description" 
-                                  class="mep-textarea" 
-                                  rows="3" 
+                        <textarea id="seo_description"
+                                  name="seo_description"
+                                  class="mep-textarea"
+                                  rows="3"
                                   maxlength="160"
                                   placeholder="<?php esc_attr_e('Descrizione breve che apparirà su Google...', 'my-event-plugin'); ?>"></textarea>
                         <p class="mep-description">
-                            <span class="desc-counter">0/160</span> caratteri • 
+                            <span class="desc-counter">0/160</span> caratteri •
                             <?php _e('Descrizione che apparirà sotto il titolo nei risultati di ricerca', 'my-event-plugin'); ?>
                         </p>
-                    </div>
-                </div>
-                
-                <!-- Genera Prompt Button -->
-                <div class="mep-form-actions" style="margin-bottom: 20px;">
-                    <button type="button" 
-                            class="button button-secondary button-hero" 
-                            id="mep-generate-prompt-btn"
-                            style="background: #e7f5ff; border-color: #0073aa; color: #0073aa;">
-                        <span class="dashicons dashicons-format-chat"></span>
-                        <?php _e('Genera Prompt ChatGPT', 'my-event-plugin'); ?>
-                    </button>
-                    <p style="margin-top: 10px; color: #646970; font-size: 13px;">
-                        <?php _e('Clicca per generare il prompt da usare con ChatGPT. Poi compila il contenuto con la risposta di ChatGPT.', 'my-event-plugin'); ?>
-                    </p>
-                </div>
-                
-                <!-- Container per il prompt ChatGPT -->
-                <div id="mep-chatgpt-prompt-container" style="display: none; margin-bottom: 20px;"></div>
-                
-                <!-- 🤖 Sezione Incolla Risposta ChatGPT -->
-                <div id="mep-chatgpt-response-section" class="mep-section" style="display: none; margin-bottom: 20px;">
-                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
-                        <h3 style="margin: 0 0 10px 0; color: white; display: flex; align-items: center; gap: 10px;">
-                            <span class="dashicons dashicons-welcome-write-blog" style="font-size: 24px; width: 24px; height: 24px;"></span>
-                            <?php _e('📋 Incolla la Risposta di ChatGPT', 'my-event-plugin'); ?>
-                        </h3>
-                        <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
-                            <?php _e('Incolla qui la risposta completa di ChatGPT. I campi verranno compilati automaticamente!', 'my-event-plugin'); ?>
-                        </p>
-                    </div>
-
-                    <div class="mep-form-row">
-                        <textarea id="mep-chatgpt-response-input"
-                                  class="mep-textarea code"
-                                  rows="12"
-                                  placeholder="<?php esc_attr_e('Incolla qui tutta la risposta di ChatGPT...', 'my-event-plugin'); ?>"
-                                  style="width: 100%; font-family: monospace; font-size: 12px;"></textarea>
-                    </div>
-
-                    <div class="mep-chatgpt-actions">
-                        <button type="button"
-                                id="mep-parse-response-btn"
-                                class="button button-primary button-large"
-                                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; font-weight: 600; padding: 10px 25px;">
-                            <span class="dashicons dashicons-controls-repeat" style="margin-top: 4px;"></span>
-                            <?php _e('🔄 Analizza e Compila Campi', 'my-event-plugin'); ?>
-                        </button>
-                        <span id="mep-parse-result-message" style="display: none; font-weight: 600;"></span>
                     </div>
                 </div>
                 
