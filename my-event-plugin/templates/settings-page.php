@@ -76,7 +76,7 @@ $token_info = MEP_Google_OAuth::get_token_info();
         <?php wp_nonce_field('mep_settings_nonce', 'mep_settings_nonce_field'); ?>
         
         <!-- 🔐 Sezione Google Drive OAuth -->
-        <div class="mep-settings-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+        <div class="mep-settings-section mep-step-banner mep-step-banner--photos mep-settings-oauth-banner">
             <h2 style="color: white; margin-top: 0;">
                 <span class="dashicons dashicons-google" style="font-size: 28px;"></span>
                 <?php _e('🔐 Autorizzazione Google Drive', 'my-event-plugin'); ?>
@@ -85,7 +85,7 @@ $token_info = MEP_Google_OAuth::get_token_info();
                 <?php _e('Configura le credenziali OAuth per accedere a Google Drive. Segui la guida sotto per ottenere Client ID e Secret.', 'my-event-plugin'); ?>
             </p>
             
-            <table class="form-table" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 15px;">
+            <table class="form-table mep-oauth-table">
                 <tr>
                     <th scope="row" style="color: white;">
                         <label for="google_client_id"><?php _e('Client ID', 'my-event-plugin'); ?></label>
