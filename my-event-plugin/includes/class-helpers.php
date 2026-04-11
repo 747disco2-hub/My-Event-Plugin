@@ -75,6 +75,7 @@ class MEP_Helpers {
         // aggiunti da PHP/WordPress. NON aggiungere wp_slash() qui.
         $sanitized['event_content'] = wp_kses_post(wp_unslash($data['event_content'] ?? ''));
 
+        $sanitized['event_slug']        = sanitize_title($data['event_slug'] ?? '');
         $sanitized['seo_focus_keyword'] = sanitize_text_field($data['seo_focus_keyword'] ?? '');
         $sanitized['seo_title']         = sanitize_text_field($data['seo_title'] ?? '');
         $sanitized['seo_description']   = sanitize_textarea_field($data['seo_description'] ?? '');

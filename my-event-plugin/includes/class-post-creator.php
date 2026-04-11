@@ -173,14 +173,24 @@ class MEP_Post_Creator {
             $content  = $template->post_content;
         }
         
-        // Disabilita temporaneamente i filtri kses per evitare la doppia sanitizzazione:
-        // il contenuto è già stato sanitizzato con wp_kses_post() in class-helpers.php
-        kses_remove_filters();
-        wp_update_post([
+        $post_args = [
             'ID'           => $post_id,
             'post_title'   => $title,
             'post_content' => $content
-        ]);
+        ];
+        
+        // Imposta il permalink (slug) se fornito, altrimenti WordPress lo genera dal titolo.
+        // Il valore è già stato normalizzato con sanitize_title() in class-helpers.php;
+        // riapplichiamolo qui come misura difensiva nel caso questo metodo venisse richiamato
+        // direttamente con dati non ancora sanitizzati.
+        if (!empty($data['event_slug'])) {
+            $post_args['post_name'] = sanitize_title($data['event_slug']);
+        }
+        
+        // Disabilita temporaneamente i filtri kses per evitare la doppia sanitizzazione:
+        // il contenuto è già stato sanitizzato con wp_kses_post() in class-helpers.php
+        kses_remove_filters();
+        wp_update_post($post_args);
         kses_init_filters();
     }
     
