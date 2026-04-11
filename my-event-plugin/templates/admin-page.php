@@ -48,21 +48,21 @@ defined('ABSPATH') || exit;
                 
                 <!-- 📁 PASSO 1: Browser Google Drive -->
                 <div class="mep-section mep-gdrive-section">
-                    <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(17, 153, 142, 0.2);">
-                        <h2 style="margin: 0 0 12px 0; color: white; display: flex; align-items: center; gap: 12px; font-size: 22px;">
+                    <div class="mep-step-banner mep-step-banner--gdrive">
+                        <h2>
                             <span class="dashicons dashicons-cloud" style="font-size: 32px; width: 32px; height: 32px;"></span>
                             <?php _e('📁 Passo 1: Naviga nel tuo Google Drive', 'my-event-plugin'); ?>
                         </h2>
-                        <p style="margin: 0; opacity: 0.95; line-height: 1.7; font-size: 15px;">
+                        <p>
                             <?php _e('Naviga nelle cartelle del tuo Google Drive e seleziona quella che contiene le foto dell\'evento.', 'my-event-plugin'); ?><br>
                             <?php _e('✨ Clicca su una cartella per aprirla, oppure clicca "Seleziona questa cartella" per caricare le foto!', 'my-event-plugin'); ?>
                         </p>
                     </div>
                     
                     <!-- Browser Google Drive -->
-                    <div id="mep-gdrive-browser" style="background: white; border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <div id="mep-gdrive-browser" class="mep-gdrive-browser">
                         <!-- Breadcrumb -->
-                        <div id="mep-gdrive-breadcrumb" style="padding: 10px; background: #f6f7f7; border-radius: 6px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <div id="mep-gdrive-breadcrumb" class="mep-gdrive-breadcrumb">
                             <span class="dashicons dashicons-admin-home" style="color: #2271b1;"></span>
                             <span style="color: #646970;">My Drive</span>
                         </div>
@@ -76,11 +76,10 @@ defined('ABSPATH') || exit;
                         </div>
                         
                         <!-- Pulsante Seleziona Cartella Corrente -->
-                        <div id="mep-current-folder-actions" style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #e0e0e0; display: none;">
+                        <div id="mep-current-folder-actions" class="mep-current-folder-actions" style="display: none;">
                             <button type="button" 
                                     id="mep-select-current-folder" 
-                                    class="button button-primary button-large"
-                                    style="width: 100%; background: #38ef7d; border-color: #38ef7d; color: #1d2327; font-weight: 600; padding: 15px; font-size: 16px;">
+                                    class="button button-primary button-large mep-select-folder-btn">
                                 <span class="dashicons dashicons-yes" style="margin-top: 4px;"></span>
                                 <?php _e('✓ Seleziona Questa Cartella e Carica Foto', 'my-event-plugin'); ?>
                             </button>
@@ -99,12 +98,12 @@ defined('ABSPATH') || exit;
                     <hr style="margin: 30px 0; border: 0; border-top: 2px solid #2271b1;">
                     
                     <div class="mep-section">
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                            <h3 style="margin: 0 0 10px 0; color: white; display: flex; align-items: center; gap: 10px;">
+                        <div class="mep-step-banner mep-step-banner--photos">
+                            <h3>
                                 <span class="dashicons dashicons-images-alt2" style="font-size: 24px; width: 24px; height: 24px;"></span>
                                 <?php _e('Passo 2: Seleziona le Foto da Importare', 'my-event-plugin'); ?>
                             </h3>
-                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                            <p>
                                 <?php _e('📸 Clicca sulle miniature per selezionare 4 foto che verranno scaricate e importate nella galleria WordPress.', 'my-event-plugin'); ?>
                             </p>
                         </div>
@@ -353,7 +352,7 @@ defined('ABSPATH') || exit;
                                   style="width: 100%; font-family: monospace; font-size: 12px;"></textarea>
                     </div>
 
-                    <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                    <div class="mep-chatgpt-actions">
                         <button type="button"
                                 id="mep-parse-response-btn"
                                 class="button button-primary button-large"
